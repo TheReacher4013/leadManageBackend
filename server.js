@@ -6,6 +6,7 @@ require("dotenv").config();
 // Routes
 const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/user.routes");
+const leadRoutes = require("./routes/lead.routes");
 
 const app = express();
 
@@ -14,9 +15,10 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
-// API Routes
+// api routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/leads", leadRoutes);
 
 app.get("/", (req, res) => {
     res.json({ message: "Server is running " });
