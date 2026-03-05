@@ -9,7 +9,7 @@ class FollowUpModel {
             FROM follow_ups f
             LEFT JOIN users u ON f.assigned_to = u.id
             WHERE f.lead_id = ?
-            ORDER BY f.follow_up_date ASC`
+            ORDER BY f.follow_up_date ASC`,
             [leadId]
         );
         return rows;

@@ -37,7 +37,7 @@ class WhatsAppCampaignModel {
 
     static async create({ name, template_name, message, scheduled_at, created_by }){
         const [result] = await db.execute(
-            `INSERT INTO whatsapp_compaihns
+            `INSERT INTO whatsapp_campaigns
             ( name, template_name, message, scheduled_at, created_by)VALUES(?,?,?,?,?)`,
              [name, template_name, message || null, scheduled_at || null, created_by]
         );
@@ -46,7 +46,7 @@ class WhatsAppCampaignModel {
     //campaign status updated karto
     static async updateStatus(id, status){
         await db.execute(
-            "UPDATE whatspp_campaign SET status = ? WHERE id = ?",
+            "UPDATE whatspp_campaigns SET status = ? WHERE id = ?",
             [status, id]
         );
 

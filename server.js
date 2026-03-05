@@ -9,6 +9,9 @@ const userRoutes = require("./routes/user.routes");
 const leadRoutes = require("./routes/lead.routes");
 const whatsappRoutes = require("./routes/whatsapp.routes");
 const emailRoutes = require("./routes/email.routes");
+const analyticsRoutes = require("./routes/analytics.routes");
+const settingsRoutes = require("./routes/settings.routes");
+const aiRoutes = require("./routes/ai.routes");
 
 const app = express();
 
@@ -23,6 +26,9 @@ app.use("/api/users", userRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/whatsapp", whatsappRoutes);
 app.use("/api/email", emailRoutes);
+app.use("/api/analytics", analyticsRoutes);
+app.use("/api/settings", settingsRoutes);
+app.use("/api/ai", aiRoutes);
 
 // Health check
 app.get("/", (req, res) => {

@@ -5,7 +5,7 @@ const checkRole = (...allowedRoles) => {
                 Message: "Unauthorized. Please login first."
             });
         }
-        if (!allowedRoles.includes(req.users.role)){
+        if (!allowedRoles.includes(req.user.role)){
             return res.status(403).json({
                 Message: `Access denied. Tis action requires: ${allowedRoles.join("or")}role.`,
             });
