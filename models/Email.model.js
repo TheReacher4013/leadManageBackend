@@ -1,13 +1,29 @@
+// =============================================
+// MODEL - Email
+// Sirf SQL queries hain yahan
+// =============================================
+
 const db = require("../config/db");
 
 class EmailModel {
 
-    // Email log save karo
-    static async createLog({ lead_id, to_email, subject, body, status, sent_by }) {
+    // -------------------------
+    // SINGLE EMAIL LOG SAVE
+    // -------------------------
+    static async createLog({ lead_id, to_email, subject, body, status, sent_by, campaign_id }) {
         const [result] = await db.execute(
-            `INSERT INTO email_logs (lead_id, to_email, subject, body, status, sent_by)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-            [lead_id || null, to_email, subject, body, status || "sent", sent_by || null]
+            `INSERT INTO email_logs 
+        (lead_id, to_email, subject, body, status, sent_by, campaign_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+                lead_id || null,
+                to_email,
+                subject,
+                body,
+                status || "sent",
+                sent_by || null,
+                campaign_id || null,
+            ]
         );
         return result.insertId;
     }
@@ -25,12 +41,31 @@ class EmailModel {
         return rows;
     }
 
-    // Campaign banao
+    // Campaign ke emails
+    static async findByCampaignId(campaignId) {
+        const [rows] = await db.execute(
+            "SELECT * FROM email_logs WHERE campaign_id = ?",
+            [campaignId]
+        );
+        return rows;
+    }
+
+    // -------------------------
+    // CAMPAIGN
+    // -------------------------
     static async createCampaign({ name, subject, body, scheduled_at, created_by }) {
         const [result] = await db.execute(
-            `INSERT INTO email_campaigns (name, subject, body, scheduled_at, created_by)
-       VALUES (?, ?, ?, ?, ?)`,
-            [name, subject, body, scheduled_at || null, created_by]
+            `INSERT INTO email_campaigns 
+        (name, subject, body, scheduled_at, status, created_by)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+            [
+                name,
+                subject,
+                body,
+                scheduled_at || null,
+                scheduled_at ? "scheduled" : "draft",
+                created_by,
+            ]
         );
         return result.insertId;
     }
@@ -58,22 +93,45 @@ class EmailModel {
         return rows[0] || null;
     }
 
-    // Contacts add karo
+    // -------------------------
+    // CONTACTS
+    // -------------------------
     static async addContacts(campaignId, contacts) {
         for (const contact of contacts) {
-            await db.execute(
-                "INSERT INTO email_campaign_contacts (campaign_id, email, name) VALUES (?, ?, ?)",
-                [campaignId, contact.email, contact.name || null]
+            // Duplicate avoid karo
+            const [existing] = await db.execute(
+                "SELECT id FROM email_campaign_contacts WHERE campaign_id = ? AND email = ?",
+                [campaignId, contact.email]
             );
+            if (existing.length === 0) {
+                await db.execute(
+                    "INSERT INTO email_campaign_contacts (campaign_id, email, name) VALUES (?, ?, ?)",
+                    [campaignId, contact.email, contact.name || null]
+                );
+            }
         }
+        // Total update karo
+        const [count] = await db.execute(
+            "SELECT COUNT(*) as total FROM email_campaign_contacts WHERE campaign_id = ?",
+            [campaignId]
+        );
         await db.execute(
             "UPDATE email_campaigns SET total_contacts = ? WHERE id = ?",
-            [contacts.length, campaignId]
+            [count[0].total, campaignId]
         );
     }
 
-    // Campaign contacts
-    static async getContacts(campaignId) {
+    // Pending contacts
+    static async getPendingContacts(campaignId) {
+        const [rows] = await db.execute(
+            "SELECT * FROM email_campaign_contacts WHERE campaign_id = ? AND status = 'pending'",
+            [campaignId]
+        );
+        return rows;
+    }
+
+    // Saare contacts
+    static async getAllContacts(campaignId) {
         const [rows] = await db.execute(
             "SELECT * FROM email_campaign_contacts WHERE campaign_id = ?",
             [campaignId]
@@ -89,7 +147,7 @@ class EmailModel {
         );
     }
 
-    // Campaign status + counts update
+    // Campaign status update
     static async updateCampaignStatus(id, status) {
         await db.execute(
             "UPDATE email_campaigns SET status = ? WHERE id = ?",
@@ -97,6 +155,7 @@ class EmailModel {
         );
     }
 
+    // Campaign counts update
     static async updateCampaignCounts(id, sentCount, failedCount) {
         await db.execute(
             "UPDATE email_campaigns SET sent_count = ?, failed_count = ? WHERE id = ?",

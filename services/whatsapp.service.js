@@ -1,7 +1,3 @@
-// =============================================
-// SERVICE - WhatsApp using Green API
-// =============================================
-
 const axios = require("axios");
 
 class WhatsAppService {

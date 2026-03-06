@@ -1,4 +1,3 @@
-
 const WhatsAppService = require("../services/whatsapp.service");
 const WhatsAppMessageModel = require("../models/WhatsAppMessage.model");
 const WhatsAppCampaignModel = require("../models/WhatsAppCampaign.model")
@@ -6,11 +5,7 @@ const LeadModel = require("../models/lead.model");
 const ActivityLogModel = require("../models/Activitylog.model");
 
 class WhatsAppController {
-
-    // -----------------------------------------------
-    // POST /api/whatsapp/send
-    // Single message bhejo kisi bhi number pe
-    // -----------------------------------------------
+   // Single message send karayala kontya hi ek number var
     static async sendMessage(req, res) {
         try {
             const { phone, message, lead_id } = req.body;
@@ -54,10 +49,7 @@ class WhatsAppController {
         }
     }
 
-    // -----------------------------------------------
-    // POST /api/whatsapp/send-template
-    // Template message bhejo
-    // -----------------------------------------------
+    // Template message pathvalyala
     static async sendTemplate(req, res) {
         try {
             const { phone, template_name, language, components, lead_id } = req.body;
@@ -95,10 +87,8 @@ class WhatsAppController {
         }
     }
 
-    // -----------------------------------------------
-    // GET /api/whatsapp/messages/:leadId
-    // Ek lead ki puri chat history
-    // -----------------------------------------------
+    // Ek lead chi puri chat history 
+    
     static async getMessages(req, res) {
         try {
             const lead = await LeadModel.findById(req.params.leadId);
@@ -113,10 +103,8 @@ class WhatsAppController {
         }
     }
 
-    // -----------------------------------------------
-    // POST /api/whatsapp/campaigns
-    // Naya campaign banao
-    // -----------------------------------------------
+    // Naya campaign banavanyasthi
+
     static async createCampaign(req, res) {
         try {
             const { name, template_name, message, contacts, scheduled_at } = req.body;
@@ -129,7 +117,7 @@ class WhatsAppController {
                 return res.status(400).json({ message: "contacts array required." });
             }
 
-            // Campaign banao
+            // Campaign banavanyasathi
             const campaignId = await WhatsAppCampaignModel.create({
                 name,
                 template_name,
@@ -138,7 +126,7 @@ class WhatsAppController {
                 created_by: req.user.id,
             });
 
-            // Contacts add karo
+            // Contacts add karayala
             await WhatsAppCampaignModel.addContacts(campaignId, contacts);
 
             const campaign = await WhatsAppCampaignModel.findById(campaignId);
@@ -152,10 +140,6 @@ class WhatsAppController {
             return res.status(500).json({ message: "Server error." });
         }
     }
-
-    // -----------------------------------------------
-    // GET /api/whatsapp/campaigns
-    // -----------------------------------------------
     static async getCampaigns(req, res) {
         try {
             const campaigns = await WhatsAppCampaignModel.findAll();
@@ -165,11 +149,7 @@ class WhatsAppController {
             return res.status(500).json({ message: "Server error." });
         }
     }
-
-    // -----------------------------------------------
-    // POST /api/whatsapp/campaigns/:id/start
     // Campaign start karo — saare contacts ko message bhejo
-    // -----------------------------------------------
     static async startCampaign(req, res) {
         try {
             const campaign = await WhatsAppCampaignModel.findById(req.params.id);
@@ -228,10 +208,7 @@ class WhatsAppController {
             return res.status(500).json({ message: "Campaign failed." });
         }
     }
-
-    // -----------------------------------------------
     // GET /api/whatsapp/campaigns/:id/analytics
-    // -----------------------------------------------
     static async getCampaignAnalytics(req, res) {
         try {
             const campaign = await WhatsAppCampaignModel.findById(req.params.id);
@@ -252,11 +229,8 @@ class WhatsAppController {
             return res.status(500).json({ message: "Server error." });
         }
     }
-
-    // -----------------------------------------------
     // GET /api/whatsapp/webhook  → Meta verification
     // POST /api/whatsapp/webhook → Incoming messages
-    // -----------------------------------------------
     static verifyWebhook(req, res) {
         const mode = req.query["hub.mode"];
         const token = req.query["hub.verify_token"];
@@ -264,7 +238,7 @@ class WhatsAppController {
 
         const result = WhatsAppService.verifyWebhook(mode, token, challenge);
         if (result) {
-            console.log("✅ WhatsApp Webhook verified");
+            console.log(" WhatsApp Webhook verified");
             return res.status(200).send(result);
         }
 
@@ -288,13 +262,13 @@ class WhatsAppController {
                     status: "received",
                     message_id: parsed.messageId,
                 });
-                console.log(`📩 New WhatsApp from ${parsed.from}: ${parsed.text}`);
+                console.log(`New WhatsApp from ${parsed.from}: ${parsed.text}`);
             }
 
             // Status update aaya (delivered/read)
             if (parsed.type === "status") {
                 await WhatsAppMessageModel.updateStatus(parsed.messageId, parsed.status);
-                console.log(`📬 Message ${parsed.messageId} status: ${parsed.status}`);
+                console.log(`Message ${parsed.messageId} status: ${parsed.status}`);
             }
 
         } catch (err) {

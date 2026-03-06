@@ -1,7 +1,3 @@
-// =============================================
-// ROUTES - Settings (Admin Only)
-// =============================================
-
 const express = require("express");
 const router = express.Router();
 

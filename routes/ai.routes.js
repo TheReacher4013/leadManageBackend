@@ -1,7 +1,3 @@
-// =============================================
-// ROUTES - AI Recommendations
-// =============================================
-
 const express = require("express");
 const router = express.Router();
 
